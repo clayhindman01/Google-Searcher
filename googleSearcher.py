@@ -4,6 +4,7 @@
 import requests
 import bs4
 import sys
+from openpyxl import Workbook
 
 class WordSearch():
     
@@ -23,13 +24,31 @@ class WordSearch():
 
         # Uses bs4 to extract the search results and print them out
         soup = bs4.BeautifulSoup(response.text, 'html.parser')
-        for el in soup.find_all("div", {"class" : "yuRUbf"}):
-            # Change this print to call the write_to_excel() method!
-            print(el.text)
+        book = Workbook()
+        sheet = book.active
+        sheet.column_dimensions['A'].width = 55
+        sheet.column_dimensions['B'].width = 30
+        sheet["A1"] = "Search Result"
+        sheet["B1"] = "URL"
 
-    # TODO Write search results to an excel file and format it
-    def write_to_excel(self):
-        pass
+        counter = 2
+        for element in soup.find_all("h3", {"class" : ["LC20lb DKV0Md", ]}):
+            row = ("A%s" % counter)
+            # Change this print to call the write_to_excel() method!
+            sheet[row] = element.text
+            counter += 1
+
+        counter2 = 2
+        for div_element in soup.find_all("div", {'class': 'yuRUbf'}):
+            a_tags = div_element.find_all('a', href= True)
+            for i in a_tags:
+                if i.find(class_="fl"):
+                    continue
+                row = ("B%s" % counter2)
+                sheet[row] = i.text
+                counter2 += 1
+
+        book.save("search.xlsx")
 
 searching = WordSearch()
 searching.search()
